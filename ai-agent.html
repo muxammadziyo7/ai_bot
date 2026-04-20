@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>AI YORDAMCHI | Codex Rejimi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #0e0e12;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: #111116;
+            border-right: 1px solid #2a2a32;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #131318;
+            overflow: hidden;
+        }
+
+        .new-chat-btn {
+            margin: 16px;
+            background: linear-gradient(135deg, #5e5eff, #3a3acc);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(94, 94, 255, 0.2);
+        }
+
+        .new-chat-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.95;
+        }
+
+        .search-area {
+            padding: 0 16px 16px 16px;
+        }
+
+        .search-area input {
+            width: 100%;
+            background: #1c1c24;
+            border: 1px solid #2a2a32;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .search-area input:focus {
+            border-color: #5e5eff;
+        }
+
+        .menu {
+            flex: 1;
+            padding: 8px 12px;
+            overflow-y: auto;
+        }
+
+        .category {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            color: #7a7a8c;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .menu-item {
+            padding: 10px 12px;
+            margin: 4px 0;
+            border-radius: 10px;
+            color: #c4c4d4;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #1c1c24;
+            color: white;
+        }
+
+        .menu-item.codex-active {
+            background: linear-gradient(135deg, #2a2a5e, #1e1e4a);
+            border-left: 3px solid #5e5eff;
+            color: #b8b8ff;
+        }
+
+        .recent-section {
+            margin-top: 16px;
+            border-top: 1px solid #2a2a32;
+            padding-top: 16px;
+        }
+
+        .chat-item {
+            padding: 10px 12px;
+            margin: 4px 0;
+            border-radius: 10px;
+            color: #c4c4d4;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .chat-item:hover {
+            background: #1c1c24;
+            color: white;
+        }
+
+        .chat-item.active {
+            background: #2a2a3a;
+            color: #8a8aff;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid #2a2a32;
+            font-size: 12px;
+            color: #7a7a8c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #2a2a32;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #131318;
+        }
+
+        .model-badge {
+            background: #1c1c24;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #8a8aff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .codex-indicator {
+            background: #2a2a5e;
+            color: #b8b8ff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 10px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: #1c1c24;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.user .avatar {
+            background: linear-gradient(135deg, #5e5eff, #3a3acc);
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.45;
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .message.user .bubble {
+            background: linear-gradient(135deg, #5e5eff, #3a3acc);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.ai .bubble {
+            background: #1c1c24;
+            color: #e4e4ec;
+            border-bottom-left-radius: 5px;
+        }
+
+        .bubble pre {
+            background: #0a0a0f;
+            padding: 10px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+
+        .bubble code {
+            background: #0a0a0f;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #8a8aff;
+            border-radius: 50%;
+            animation: pulse 1.4s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 60%, 100% { transform: scale(0.6); opacity: 0.4; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .input-area {
+            padding: 20px 24px 24px;
+            border-top: 1px solid #2a2a32;
+            background: #131318;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: #1c1c24;
+            border-radius: 30px;
+            padding: 6px 6px 6px 20px;
+            border: 1px solid #2a2a32;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #5e5eff;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 0;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #5e5eff, #3a3acc);
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                height: 100%;
+                transition: left 0.3s ease;
+            }
+            .sidebar.open {
+                left: 0;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+            }
+            .menu-toggle {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+                color: white;
+            }
+            .bubble {
+                max-width: 85%;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c1c24;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a4a;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="sidebar" id="sidebar">
+        <button class="new-chat-btn" id="newChatBtn">
+            ✨ Yangi suhbat
+        </button>
+        
+        <div class="search-area">
+            <input type="text" id="searchInput" placeholder="🔍 Suhbatlarni qidirish">
+        </div>
+        
+        <div class="menu">
+            <div class="category">
+                <div class="category-title">ASOSIY</div>
+                <div class="menu-item" data-mode="default" data-prompt="Rasm yaratish bo'yicha maslahat bering">🖼️ Rasmlar</div>
+                <div class="menu-item" data-mode="codex" data-prompt="Mobil ilovalar yaratish, dasturlash, kod yozish bo'yicha batafsil yordam bering. Professional developer sifatida javob bering.">📱 Ilovalar</div>
+                <div class="menu-item" data-mode="default" data-prompt="Chuqur tadqiqot metodlari va ilmiy maqolalar">🔬 Chuqur tadqiqot</div>
+                <div class="menu-item" data-mode="codex" data-prompt="Siz hozir Codex rejimidasiz. Dasturlash kodi yozish, debugging, algoritmlar, frameworklar va texnik maslahatlar bering. Kodlarni to'liq va izohli yozing.">💻 Codex</div>
+                <div class="menu-item" data-mode="default" data-prompt="Loyihalarni boshqarish va startaplar">📁 Loyihalar</div>
+            </div>
+            
+            <div class="category">
+                <div class="category-title">GPT & INNOVATION</div>
+                <div class="menu-item" data-mode="default" data-prompt="GPT modellari qanday ishlaydi?">🤖 GPT</div>
+                <div class="menu-item" data-mode="default" data-prompt="HackGPT — xavfsizlik va AI imkoniyatlari">🔓 HackGPT</div>
+                <div class="menu-item" data-mode="default" data-prompt="API kalitlari va xavfsiz integratsiya">🔑 API Key Yordam</div>
+                <div class="menu-item" data-mode="default" data-prompt="GPTni o'rganish uchun eng yaxshi resurslar">🌍 GPTni o'rganish</div>
+            </div>
+            
+            <div class="recent-section">
+                <div class="category-title">YAQINDA</div>
+                <div id="recentChatsList"></div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            👤 <span id="userNameSidebar">Mehmon</span>
+        </div>
+    </div>
+    
+    <div class="main">
+        <div class="main-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="menu-toggle" id="menuToggle">☰</div>
+                <span style="color: white; font-weight: 600;">🤖 AI Yordamchi</span>
+            </div>
+            <div class="model-badge">
+                🧠 <span id="modelName">Groq Llama 3.3</span>
+                <span id="modeIndicator" class="codex-indicator" style="display: none;">💻 Codex Rejimi</span>
+            </div>
+        </div>
+        
+        <div class="messages" id="messagesContainer">
+            <div class="message ai">
+                <div class="avatar">🤖</div>
+                <div class="bubble">
+                    <strong>Assalomu alaykum!</strong><br><br>
+                    Men <strong>AI Yordamchi</strong> — Groq API bilan ishlayman.<br>
+                    Dasturlash, cybersecurity, o'yinlar, APK — istalgan savolingizga javob beraman.<br><br>
+                    💡 <strong>Codex rejimi:</strong> "Ilovalar" yoki "Codex" tugmalarini bossangiz, dasturlash rejimiga o'taman va kod yozishda yordam beraman.<br><br>
+                    ✍️ Savolingizni yozing...
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="messageInput" placeholder="Xabar yozing..." autocomplete="off">
+                <button class="send-btn" id="sendBtn">➤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============ GROQ API ============
+    const API_KEY = "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";
+    const MODEL = "llama-3.3-70b-versatile";
+    
+    // Global state
+    let currentUser = localStorage.getItem('ai_user') || "Mehmon";
+    let currentChatId = null;
+    let conversationHistory = [];
+    let isLoading = false;
+    let allChats = {};
+    let isCodexMode = false;  // Codex rejimi holati
+    
+    // DOM elements
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const recentChatsList = document.getElementById('recentChatsList');
+    const userNameSidebar = document.getElementById('userNameSidebar');
+    const searchInput = document.getElementById('searchInput');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const modeIndicator = document.getElementById('modeIndicator');
+    
+    userNameSidebar.textContent = currentUser;
+    
+    // Codex rejimini yangilash UI
+    function updateCodexModeUI() {
+        if (isCodexMode) {
+            modeIndicator.style.display = 'inline-flex';
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('data-mode') === 'codex') {
+                    item.classList.add('codex-active');
+                } else {
+                    item.classList.remove('codex-active');
+                }
+            });
+        } else {
+            modeIndicator.style.display = 'none';
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('codex-active');
+            });
+        }
+    }
+    
+    // Codex rejimini o'rnatish
+    function setCodexMode(enabled) {
+        isCodexMode = enabled;
+        updateCodexModeUI();
+        // System messageni yangilash
+        updateSystemMessage();
+    }
+    
+    function updateSystemMessage() {
+        const systemContent = isCodexMode 
+            ? `Sen AI Yordamchi - CODEX REJIMIDASAN. Hozir sanoat darajasidagi dasturchi va developer sifatida ishlayapsan. Foydalanuvchi ismi: ${currentUser}. 
+               Vazifalaring:
+               - Faqat dasturlash, kod yozish, algoritmlar, frameworklar, debugging, API integratsiya, ma'lumotlar tuzilmasi va backend/frontend masalalarida yordam ber.
+               - Har bir kodni to'liq, izohli va misollar bilan yoz.
+               - Agar so'ralmasa, keraksiz matn yozma, faqat texnik va kodga oid javob qaytar.
+               - O'zbek yoki so'ralgan tilda javob ber, lekin kodlar ingliz tilida bo'lsin.
+               - Professional va lo'nda bo'l.`
+            : `Sen AI Yordamchi, kuchli sun'iy intellekt. Foydalanuvchi ismi: ${currentUser}. O'zbek tilida javob ber. Har qanday mavzuda yordam ber: dasturlash, cybersecurity, o'yinlar, APK, kreativ yozish, umumiy savollar. Do'stona va batafsil javob qaytar.`;
+        
+        // System message ni yangilash (agar mavjud bo'lsa)
+        const systemIndex = conversationHistory.findIndex(msg => msg.role === 'system');
+        if (systemIndex !== -1) {
+            conversationHistory[systemIndex].content = systemContent;
+        } else if (conversationHistory.length > 0) {
+            conversationHistory.unshift({ role: "system", content: systemContent });
+        } else {
+            conversationHistory.push({ role: "system", content: systemContent });
+        }
+        saveCurrentChat();
+    }
+    
+    // ============ LOCALSTORAGE ============
+    function getStorageKey() {
+        return `ai_yordamchi_chats_${currentUser}`;
+    }
+    
+    function saveAllChats() {
+        localStorage.setItem(getStorageKey(), JSON.stringify(allChats));
+    }
+    
+    function loadAllChats() {
+        const saved = localStorage.getItem(getStorageKey());
+        if (saved) {
+            allChats = JSON.parse(saved);
+        } else {
+            allChats = {};
+        }
+    }
+    
+    function saveCurrentChat() {
+        if (!currentChatId) return;
+        const filteredHistory = conversationHistory.filter(msg => msg.role !== 'system');
+        allChats[currentChatId] = {
+            messages: JSON.parse(JSON.stringify(filteredHistory)),
+            updatedAt: Date.now(),
+            title: getChatTitle(),
+            wasCodexMode: isCodexMode
+        };
+        saveAllChats();
+        renderRecentChats();
+    }
+    
+    function getChatTitle() {
+        const userMsg = conversationHistory.find(m => m.role === 'user');
+        if (userMsg && userMsg.content) {
+            let title = userMsg.content.substring(0, 45);
+            return title.length > 45 ? title + '...' : title;
+        }
+        return 'Yangi suhbat';
+    }
+    
+    function renderRecentChats() {
+        const chats = Object.entries(allChats)
+            .sort((a, b) => b[1].updatedAt - a[1].updatedAt)
+            .slice(0, 10);
+        
+        const searchTerm = searchInput.value.toLowerCase();
+        const filtered = searchTerm ? chats.filter(([id, chat]) => 
+            chat.title.toLowerCase().includes(searchTerm)
+        ) : chats;
+        
+        if (filtered.length === 0) {
+            recentChatsList.innerHTML = '<div style="padding: 10px; color: #5a5a6e; font-size: 12px;">📭 Suhbat topilmadi</div>';
+            return;
+        }
+        
+        recentChatsList.innerHTML = filtered.map(([id, chat]) => `
+            <div class="chat-item ${currentChatId === id ? 'active' : ''}" data-chat-id="${id}">
+                ${chat.wasCodexMode ? '💻 ' : '💬 '} ${escapeHtml(chat.title)}
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.chat-item').forEach(el => {
+            el.addEventListener('click', () => {
+                loadChatById(el.dataset.chatId);
+                if (window.innerWidth <= 768) sidebar.classList.remove('open');
+            });
+        });
+    }
+    
+    function loadChatById(chatId) {
+        if (!allChats[chatId]) return;
+        const savedMsgs = allChats[chatId].messages || [];
+        const wasCodex = allChats[chatId].wasCodexMode || false;
+        
+        // Codex rejimini tiklash
+        isCodexMode = wasCodex;
+        updateCodexModeUI();
+        
+        const systemContent = isCodexMode 
+            ? `Sen AI Yordamchi - CODEX REJIMIDASAN. ... (dasturchi rejimi) Foydalanuvchi: ${currentUser}. Faqat dasturlash va kod yozishda yordam ber.`
+            : `Sen AI Yordamchi, kuchli sun'iy intellekt. Foydalanuvchi ismi: ${currentUser}. O'zbek tilida javob ber. Har qanday mavzuda yordam ber.`;
+        
+        conversationHistory = [
+            { role: "system", content: systemContent },
+            ...savedMsgs
+        ];
+        currentChatId = chatId;
+        refreshUI();
+    }
+    
+    function createNewChat() {
+        currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        isCodexMode = false;
+        updateCodexModeUI();
+        const systemContent = `Sen AI Yordamchi, kuchli sun'iy intellekt. Foydalanuvchi ismi: ${currentUser}. O'zbek tilida javob ber. Dasturlash, cybersecurity, o'yinlar, APK, kreativ yozish, har qanday mavzuda yordam ber. Do'stona va lo'nda.`;
+        conversationHistory = [
+            { role: "system", content: systemContent }
+        ];
+        saveCurrentChat();
+        refreshUI();
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
+    }
+    
+    function refreshUI() {
+        messagesContainer.innerHTML = '';
+        const displayMessages = conversationHistory.filter(m => m.role !== 'system');
+        
+        if (displayMessages.length === 0) {
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'message ai';
+            welcomeDiv.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="bubble">
+                    <strong>Assalomu alaykum, ${escapeHtml(currentUser)}!</strong><br><br>
+                    AI Yordamchi xizmatda. Savolingizni yozing yoki <strong>📱 Ilovalar</strong> yoki <strong>💻 Codex</strong> tugmalarini bosib dasturlash rejimiga o'ting! 🚀
+                </div>
+            `;
+            messagesContainer.appendChild(welcomeDiv);
+        } else {
+            for (let msg of displayMessages) {
+                addMessageToUI(msg.content, msg.role === 'user' ? 'user' : 'ai', false);
+            }
+        }
+        scrollToBottom();
+        renderRecentChats();
+    }
+    
+    function addMessageToUI(text, sender, saveToHistory = true) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender}`;
+        const avatar = sender === 'user' ? '👤' : '🤖';
+        const formatted = formatText(text);
+        msgDiv.innerHTML = `
+            <div class="avatar">${avatar}</div>
+            <div class="bubble">${formatted}</div>
+        `;
+        messagesContainer.appendChild(msgDiv);
+        scrollToBottom();
+        
+        if (saveToHistory && sender === 'user') {
+            conversationHistory.push({ role: "user", content: text });
+            saveCurrentChat();
+        } else if (saveToHistory && sender === 'ai') {
+            conversationHistory.push({ role: "assistant", content: text });
+            saveCurrentChat();
+        }
+    }
+    
+    function formatText(text) {
+        let formatted = text
+            .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+        return formatted;
+    }
+    
+    function scrollToBottom() {
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 50);
+    }
+    
+    function showTyping() {
+        removeTyping();
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message ai';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="avatar">🤖</div>
+            <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        scrollToBottom();
+    }
+    
+    function removeTyping() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+    }
+    
+    async function sendToAI(userMessage) {
+        if (isLoading || !userMessage.trim()) return;
+        
+        addMessageToUI(userMessage, 'user', true);
+        messageInput.value = '';
+        isLoading = true;
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+        showTyping();
+        
+        try {
+            const apiMessages = conversationHistory.map(msg => ({
+                role: msg.role === 'assistant' ? 'assistant' : (msg.role === 'user' ? 'user' : 'system'),
+                content: msg.content
+            }));
+            
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: apiMessages,
+                    temperature: isCodexMode ? 0.5 : 0.75,
+                    max_tokens: 1200
+                })
+            });
+            
+            if (!response.ok) {
+                let errorMsg = `API xatosi ${response.status}`;
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.error?.message || errorMsg;
+                } catch(e) {}
+                throw new Error(errorMsg);
+            }
+            
+            const data = await response.json();
+            const aiReply = data.choices[0].message.content;
+            removeTyping();
+            addMessageToUI(aiReply, 'ai', true);
+            
+        } catch (err) {
+            removeTyping();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message ai';
+            errorDiv.innerHTML = `
+                <div class="avatar">⚠️</div>
+                <div class="bubble" style="background:#2a1a1a;">
+                    <strong>Xatolik:</strong><br>${escapeHtml(err.message)}<br><br>🔄 Qayta uruning.
+                </div>
+            `;
+            messagesContainer.appendChild(errorDiv);
+            scrollToBottom();
+        } finally {
+            isLoading = false;
+            sendBtn.disabled = false;
+            messageInput.disabled = false;
+            messageInput.focus();
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ============ MENU ITEMS WITH MODE SWITCH ============
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const mode = item.getAttribute('data-mode');
+            const promptText = item.getAttribute('data-prompt');
+            
+            // Codex rejimiga o'tish (agar "codex" bo'lsa)
+            if (mode === 'codex') {
+                if (!isCodexMode) {
+                    setCodexMode(true);
+                    // Codex rejimiga o'tganligi haqida xabar
+                    addMessageToUI("💻 Codex rejimiga o'tildi! Endi dasturlash, kod yozish va texnik masalalarda yordam bera olaman.", 'ai', true);
+                }
+            } else if (mode === 'default' && isCodexMode) {
+                // Default rejimga qaytish
+                setCodexMode(false);
+                addMessageToUI("✅ Oddiy rejimga qaytildi. Endi barcha mavzularda suhbatlashishim mumkin.", 'ai', true);
+            }
+            
+            if (promptText && promptText.trim()) {
+                setTimeout(() => {
+                    sendToAI(promptText);
+                }, 100);
+            }
+            if (window.innerWidth <= 768) sidebar.classList.remove('open');
+        });
+    });
+    
+    // ============ EVENT LISTENERS ============
+    sendBtn.addEventListener('click', () => {
+        if (messageInput.value.trim() && !isLoading) sendToAI(messageInput.value);
+    });
+    
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !isLoading && messageInput.value.trim()) {
+            e.preventDefault();
+            sendToAI(messageInput.value);
+        }
+    });
+    
+    newChatBtn.addEventListener('click', () => {
+        if (confirm('Yangi suhbat boshlansin? Joriy suhbat saqlanadi.')) {
+            createNewChat();
+        }
+    });
+    
+    searchInput.addEventListener('input', () => {
+        renderRecentChats();
+    });
+    
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open') && 
+            !sidebar.contains(e.target) && e.target !== menuToggle) {
+            sidebar.classList.remove('open');
+        }
+    });
+    
+    // ============ BOSHLASH ============
+    loadAllChats();
+    const chatIds = Object.keys(allChats);
+    if (chatIds.length > 0) {
+        const lastChat = chatIds.sort((a,b) => allChats[b].updatedAt - allChats[a].updatedAt)[0];
+        loadChatById(lastChat);
+    } else {
+        createNewChat();
+    }
+    
+    setTimeout(() => messageInput.focus(), 300);
+</script>
+</body>
+</html> 
